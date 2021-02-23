@@ -30,6 +30,9 @@ if (inBrowser) {
 		})
 	}
 } else {
+	// WARNING: This is dangerous for man in the middle attacks
+	process.env.NODE_TLS_REJECT_UNAUTHORIZED = 0
+
 	const http = require("http")
 	const https = require("https")
 
@@ -568,6 +571,7 @@ class Match {
  * Out: [Source{source: "http://www.example.com", matches = [Match{...}, ...], text = "Example Domain Example ..."},
  *  ...]
  */
+const log = (...args) => console.log(...args)
 async function match({
 	text = "",
 	language = "english",
@@ -583,11 +587,13 @@ async function match({
 	let sources = []
 
 	let [inputWords, inputIndicesList] = getWords(inputText)
+	// list of main words, list of indexes
 	;[inputWords, inputIndicesList] = normalizeAndRemoveStopWords(
 		inputWords,
 		inputIndicesList,
 		language
 	)
+	// word group arrays; indexes
 	let [inputShingles, inputShingledIndicesList] = shingleAndStemmer(
 		inputWords,
 		inputIndicesList,
@@ -604,6 +610,8 @@ async function match({
 		)
 	}
 
+	log(searchQueries, searchQueries.length)
+	searchQueries = [searchQueries[0]]
 	let usedUrls = [] // Urls that have already have been used.
 	for (let query of searchQueries) {
 		let comparedUrls
@@ -904,7 +912,7 @@ async function autoCitation({
 }
 
 if (!inBrowser) {
-	module.exports = {match, autoCitation, matchPrint}
+	module.exports = {match, autoCitation, matchPrint, get, singleSearchScrape}
 } else {
 	window["hooke"] = {match, autoCitation, matchPrint}
 }
