@@ -3,6 +3,7 @@
 
   `LANG=es node mytest.js`
 */
+const fs = require('fs')
 const hooke = require('.')
 const testCases = require('./data/plagiarism-test-cases.json')
 const defaultTest = testCases.english[0] // simple test for reference
@@ -16,10 +17,12 @@ let expectedMatch = test.source
 hooke
   .match(testParams)
   .then((sources) => {
+    // for details on source objects, see helpers.js
     const hasPlagiarismSource = sources.some(({ source }) => source.includes(expectedMatch))
     console.info(`Sherlock Holmes Test: ${hasPlagiarismSource ? 'PASSED' : 'FAILED'}`)
     sources.forEach((source) => {
       console.log('link', source.source)
     })
+    fs.writeFileSync(`./data/result.json`, JSON.stringify(sources), 'utf-8')
   })
   .catch(console.log)
